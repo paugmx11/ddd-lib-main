@@ -21,7 +21,7 @@ final class Router
         if ($method === 'GET' && $uri === '/api') {
             return JsonResponse::ok([
                 'message' => 'School REST API',
-                'resources' => ['students', 'teachers', 'courses'],
+                'resources' => ['students', 'teachers', 'subjects', 'courses'],
             ]);
         }
 
@@ -67,6 +67,34 @@ final class Router
 
         if ($method === 'DELETE' && preg_match('#^/api/teachers/([^/]+)$#', $uri, $matches)) {
             return $this->apiController->deleteTeacher($matches[1]);
+        }
+
+        if ($method === 'GET' && $uri === '/api/subjects') {
+            return $this->apiController->listSubjects();
+        }
+
+        if ($method === 'POST' && $uri === '/api/subjects') {
+            return $this->apiController->createSubject($payload);
+        }
+
+        if ($method === 'GET' && preg_match('#^/api/subjects/([^/]+)$#', $uri, $matches)) {
+            return $this->apiController->getSubject($matches[1]);
+        }
+
+        if (($method === 'PUT' || $method === 'PATCH') && preg_match('#^/api/subjects/([^/]+)$#', $uri, $matches)) {
+            return $this->apiController->updateSubject($matches[1], $payload);
+        }
+
+        if ($method === 'DELETE' && preg_match('#^/api/subjects/([^/]+)$#', $uri, $matches)) {
+            return $this->apiController->deleteSubject($matches[1]);
+        }
+
+        if (($method === 'POST' || $method === 'PUT' || $method === 'PATCH') && preg_match('#^/api/subjects/([^/]+)/teacher$#', $uri, $matches)) {
+            return $this->apiController->assignTeacherToSubject($matches[1], $payload);
+        }
+
+        if ($method === 'DELETE' && preg_match('#^/api/subjects/([^/]+)/teacher$#', $uri, $matches)) {
+            return $this->apiController->unassignTeacherFromSubject($matches[1]);
         }
 
         if ($method === 'GET' && $uri === '/api/courses') {

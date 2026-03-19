@@ -8,7 +8,10 @@ use App\Application\CreateStudent\CreateStudentCommand;
 use App\Application\CreateCourse\CreateCourseCommand;
 use App\Application\CreateCourse\CreateCourseHandler;
 use App\Application\CreateTeacher\CreateTeacherCommand;
+use App\Application\CreateSubject\CreateSubjectCommand;
 use App\Application\EnrollStudent\EnrollStudentCommand;
+use App\Application\AssignTeacherToSubject\AssignTeacherToSubjectCommand;
+use App\Application\UnassignTeacherFromSubject\UnassignTeacherFromSubjectCommand;
 use App\Domain\Enrollment\Enrollment;
 use App\Domain\Course\Course;
 use App\Domain\Course\CourseId;
@@ -16,13 +19,15 @@ use App\Domain\Course\CourseRepository;
 use App\Domain\Student\Student;
 use App\Domain\Student\StudentId;
 use App\Domain\Student\StudentRepository;
+use App\Domain\Subject\Subject;
+use App\Domain\Subject\SubjectId;
 use App\Domain\Teacher\Teacher;
 use App\Domain\Teacher\TeacherId;
 use App\Domain\Subject\SubjectRepository;
 use App\Domain\Teacher\TeacherRepository;
-use App\Application\CreateSubject\CreateSubjectHandler;
 use App\Application\CreateStudent\CreateStudentHandler;
 use App\Application\CreateTeacher\CreateTeacherHandler;
+use App\Application\CreateSubject\CreateSubjectHandler;
 use App\Application\EnrollStudent\EnrollStudentHandler;
 use App\Application\AssignTeacherToSubject\AssignTeacherToSubjectHandler;
 use App\Application\UnassignTeacherFromSubject\UnassignTeacherFromSubjectHandler;
@@ -222,6 +227,128 @@ final class ApiController
         return JsonResponse::noContent();
     }
 
+    public function listSubjects(): array
+    {
+        return JsonResponse::ok([
+            'data' => array_map(
+                fn (Subject $subject): array => $this->serializeSubject($subject),
+                $this->subjectRepository->findAll()
+            ),
+        ]);
+    }
+
+    public function getSubject(string $id): array
+    {
+        $subject = $this->subjectRepository->find(new SubjectId($id));
+        if ($subject === null) {
+            return JsonResponse::error(404, 'Subject not found');
+        }
+
+        return JsonResponse::ok(['data' => $this->serializeSubject($subject)]);
+    }
+
+    public function createSubject(array $payload): array
+    {
+        try {
+            $command = new CreateSubjectCommand(
+                SubjectId::generate()->value(),
+                $this->requiredString($payload, 'name'),
+                $this->requiredString($payload, 'courseId')
+            );
+
+            $this->createSubjectHandler->handle($command);
+
+            $subject = $this->subjectRepository->find(new SubjectId($command->subjectId));
+
+            return JsonResponse::created(['data' => $this->serializeSubject($subject)]);
+        } catch (\Throwable $exception) {
+            return $this->handleException($exception);
+        }
+    }
+
+    public function updateSubject(string $id, array $payload): array
+    {
+        $subject = $this->subjectRepository->find(new SubjectId($id));
+        if ($subject === null) {
+            return JsonResponse::error(404, 'Subject not found');
+        }
+
+        try {
+            $name = $this->requiredString($payload, 'name');
+            $courseId = $this->requiredString($payload, 'courseId');
+            $course = $this->courseRepository->find(new CourseId($courseId));
+
+            if ($course === null) {
+                return JsonResponse::error(404, 'Course not found');
+            }
+
+            foreach ($this->subjectRepository->findByCourse($courseId) as $existingSubject) {
+                if (
+                    $existingSubject->name() === $name
+                    && $existingSubject->id()->value() !== $subject->id()->value()
+                ) {
+                    return JsonResponse::error(409, 'A subject with this name already exists in this course');
+                }
+            }
+
+            $subject->update($name, $course);
+            $this->subjectRepository->save($subject);
+
+            return JsonResponse::ok(['data' => $this->serializeSubject($subject)]);
+        } catch (\Throwable $exception) {
+            return $this->handleException($exception);
+        }
+    }
+
+    public function deleteSubject(string $id): array
+    {
+        $subject = $this->subjectRepository->find(new SubjectId($id));
+        if ($subject === null) {
+            return JsonResponse::error(404, 'Subject not found');
+        }
+
+        $this->subjectRepository->delete($subject);
+
+        return JsonResponse::noContent();
+    }
+
+    public function assignTeacherToSubject(string $subjectId, array $payload): array
+    {
+        try {
+            $teacherId = $this->requiredString($payload, 'teacherId');
+            $this->assignTeacherHandler->handle(
+                new AssignTeacherToSubjectCommand($teacherId, $subjectId)
+            );
+
+            return $this->getSubject($subjectId);
+        } catch (\Throwable $exception) {
+            return $this->handleException($exception);
+        }
+    }
+
+    public function unassignTeacherFromSubject(string $subjectId): array
+    {
+        $subject = $this->subjectRepository->find(new SubjectId($subjectId));
+        if ($subject === null) {
+            return JsonResponse::error(404, 'Subject not found');
+        }
+
+        $teacherId = $subject->teacherId()?->value();
+        if ($teacherId === null) {
+            return JsonResponse::error(409, 'Subject has no teacher assigned');
+        }
+
+        try {
+            $this->unassignTeacherHandler->handle(
+                new UnassignTeacherFromSubjectCommand($teacherId, $subjectId)
+            );
+
+            return JsonResponse::noContent();
+        } catch (\Throwable $exception) {
+            return $this->handleException($exception);
+        }
+    }
+
     public function listCourses(): array
     {
         return JsonResponse::ok([
@@ -296,6 +423,13 @@ final class ApiController
             return JsonResponse::error(409, $message);
         }
 
+        if (
+            str_contains($normalizedMessage, 'already has a teacher')
+            || str_contains($normalizedMessage, 'has no teacher assigned')
+        ) {
+            return JsonResponse::error(409, $message);
+        }
+
         return JsonResponse::error(400, $message);
     }
 
@@ -344,6 +478,27 @@ final class ApiController
             'name' => $teacher->name(),
             'email' => $teacher->email(),
             'subjects' => $subjects,
+        ];
+    }
+
+    private function serializeSubject(?Subject $subject): array
+    {
+        if ($subject === null) {
+            throw new \RuntimeException('Subject not found');
+        }
+
+        return [
+            'id' => $subject->id()->value(),
+            'name' => $subject->name(),
+            'course' => [
+                'id' => $subject->course()->id()->value(),
+                'name' => $subject->course()->name(),
+            ],
+            'teacher' => $subject->teacher() === null ? null : [
+                'id' => $subject->teacher()->id()->value(),
+                'name' => $subject->teacher()->name(),
+                'email' => $subject->teacher()->email(),
+            ],
         ];
     }
 
