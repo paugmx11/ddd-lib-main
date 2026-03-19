@@ -5,7 +5,6 @@ declare(strict_types=1);
 require __DIR__ . '/vendor/autoload.php';
 
 use Dotenv\Dotenv;
-use Doctrine\ORM\EntityManagerInterface;
 use App\Infrastructure\Persistence\DoctrineStudentRepository;
 use App\Infrastructure\Persistence\DoctrineTeacherRepository;
 use App\Infrastructure\Persistence\DoctrineCourseRepository;
@@ -22,6 +21,8 @@ use App\Infrastructure\Web\Controller\StudentController;
 use App\Infrastructure\Web\Controller\TeacherController;
 use App\Infrastructure\Web\Controller\CourseController;
 use App\Infrastructure\Web\Controller\SubjectController;
+use App\Http\ApiController;
+use App\Http\Router;
 
 // Load environment variables
 $dotenv = Dotenv::createImmutable(__DIR__);
@@ -74,6 +75,7 @@ $subjectController = new SubjectController(
 );
 
 // Routing
+$method = $_SERVER['REQUEST_METHOD'];
 $path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 $routes = require __DIR__ . '/config/routes.php';
 $controllers = [
@@ -84,6 +86,37 @@ $controllers = [
 ];
 
 try {
+    if (is_string($path) && str_starts_with($path, '/api')) {
+        $router = new Router(new ApiController(
+            $studentRepository,
+            $teacherRepository,
+            $subjectRepository,
+            $courseRepository,
+            $createStudentHandler,
+            $createTeacherHandler,
+            $createSubjectHandler,
+            $createCourseHandler,
+            $enrollStudentHandler,
+            $assignTeacherHandler,
+            $unassignTeacherHandler
+        ));
+
+        $response = $router->dispatch(
+            $method,
+            $path,
+            file_get_contents('php://input') ?: ''
+        );
+
+        http_response_code($response['status']);
+        header('Content-Type: application/json; charset=utf-8');
+
+        if ($response['body'] !== null) {
+            echo json_encode($response['body'], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+        }
+
+        return;
+    }
+
     $route = $routes[$path] ?? null;
 
     if ($route === null) {

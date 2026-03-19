@@ -7,12 +7,20 @@ use Doctrine\ORM\Tools\SchemaTool;
 
 require_once __DIR__ . '/../vendor/autoload.php';
 
-// Cargar variables de entorno
-$dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/..');
-$dotenv->load();
+if (
+    !isset($_ENV['DATABASE_URL'])
+    && !isset($_SERVER['DATABASE_URL'])
+    && getenv('DATABASE_URL') === false
+) {
+    $dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/..');
+    $dotenv->load();
+}
 
 // Obtener la URL de la base de datos
-$databaseUrl = $_ENV['DATABASE_URL'] ?? 'sqlite:///:memory:';
+$databaseUrl = $_ENV['DATABASE_URL']
+    ?? $_SERVER['DATABASE_URL']
+    ?? getenv('DATABASE_URL')
+    ?: 'sqlite:///:memory:';
 
 // Analizar la URL de la base de datos
 if (strpos($databaseUrl, 'sqlite') !== false) {
