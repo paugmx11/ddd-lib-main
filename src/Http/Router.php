@@ -21,8 +21,32 @@ final class Router
         if ($method === 'GET' && $uri === '/api') {
             return JsonResponse::ok([
                 'message' => 'School REST API',
-                'resources' => ['courses'],
+                'resources' => ['students', 'courses'],
             ]);
+        }
+
+        if ($method === 'GET' && $uri === '/api/students') {
+            return $this->apiController->listStudents();
+        }
+
+        if ($method === 'POST' && $uri === '/api/students') {
+            return $this->apiController->createStudent($payload);
+        }
+
+        if ($method === 'GET' && preg_match('#^/api/students/([^/]+)$#', $uri, $matches)) {
+            return $this->apiController->getStudent($matches[1]);
+        }
+
+        if (($method === 'PUT' || $method === 'PATCH') && preg_match('#^/api/students/([^/]+)$#', $uri, $matches)) {
+            return $this->apiController->updateStudent($matches[1], $payload);
+        }
+
+        if ($method === 'DELETE' && preg_match('#^/api/students/([^/]+)$#', $uri, $matches)) {
+            return $this->apiController->deleteStudent($matches[1]);
+        }
+
+        if ($method === 'POST' && preg_match('#^/api/students/([^/]+)/enrollments$#', $uri, $matches)) {
+            return $this->apiController->enrollStudent($matches[1], $payload);
         }
 
         if ($method === 'GET' && $uri === '/api/courses') {

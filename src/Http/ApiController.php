@@ -4,20 +4,25 @@ declare(strict_types=1);
 
 namespace App\Http;
 
-use App\Application\AssignTeacherToSubject\AssignTeacherToSubjectHandler;
+use App\Application\CreateStudent\CreateStudentCommand;
 use App\Application\CreateCourse\CreateCourseCommand;
 use App\Application\CreateCourse\CreateCourseHandler;
-use App\Application\CreateStudent\CreateStudentHandler;
-use App\Application\CreateSubject\CreateSubjectHandler;
-use App\Application\CreateTeacher\CreateTeacherHandler;
-use App\Application\EnrollStudent\EnrollStudentHandler;
-use App\Application\UnassignTeacherFromSubject\UnassignTeacherFromSubjectHandler;
+use App\Application\EnrollStudent\EnrollStudentCommand;
+use App\Domain\Enrollment\Enrollment;
 use App\Domain\Course\Course;
 use App\Domain\Course\CourseId;
 use App\Domain\Course\CourseRepository;
+use App\Domain\Student\Student;
+use App\Domain\Student\StudentId;
 use App\Domain\Student\StudentRepository;
 use App\Domain\Subject\SubjectRepository;
 use App\Domain\Teacher\TeacherRepository;
+use App\Application\CreateTeacher\CreateTeacherHandler;
+use App\Application\CreateSubject\CreateSubjectHandler;
+use App\Application\CreateStudent\CreateStudentHandler;
+use App\Application\EnrollStudent\EnrollStudentHandler;
+use App\Application\AssignTeacherToSubject\AssignTeacherToSubjectHandler;
+use App\Application\UnassignTeacherFromSubject\UnassignTeacherFromSubjectHandler;
 
 final class ApiController
 {
@@ -35,12 +40,99 @@ final class ApiController
         private UnassignTeacherFromSubjectHandler $unassignTeacherHandler
     ) {}
 
-    public function info(): array
+    public function listStudents(): array
     {
         return JsonResponse::ok([
-            'message' => 'School REST API',
-            'format' => 'JSON',
+            'data' => array_map(
+                fn (Student $student): array => $this->serializeStudent($student),
+                $this->studentRepository->findAll()
+            ),
         ]);
+    }
+
+    public function getStudent(string $id): array
+    {
+        $student = $this->studentRepository->find(new StudentId($id));
+        if ($student === null) {
+            return JsonResponse::error(404, 'Student not found');
+        }
+
+        return JsonResponse::ok(['data' => $this->serializeStudent($student)]);
+    }
+
+    public function createStudent(array $payload): array
+    {
+        try {
+            $command = new CreateStudentCommand(
+                StudentId::generate()->value(),
+                $this->requiredString($payload, 'name'),
+                $this->requiredString($payload, 'email')
+            );
+
+            $this->createStudentHandler->handle($command);
+
+            $student = $this->studentRepository->find(new StudentId($command->studentId));
+
+            return JsonResponse::created(['data' => $this->serializeStudent($student)]);
+        } catch (\Throwable $exception) {
+            return $this->handleException($exception);
+        }
+    }
+
+    public function updateStudent(string $id, array $payload): array
+    {
+        $student = $this->studentRepository->find(new StudentId($id));
+        if ($student === null) {
+            return JsonResponse::error(404, 'Student not found');
+        }
+
+        try {
+            $name = $this->requiredString($payload, 'name');
+            $email = $this->requiredString($payload, 'email');
+
+            $existingStudent = $this->studentRepository->findByEmail($email);
+            if (
+                $existingStudent !== null
+                && $existingStudent->id()->value() !== $student->id()->value()
+            ) {
+                return JsonResponse::error(409, 'A student with this email already exists');
+            }
+
+            $student->updateProfile($name, $email);
+            $this->studentRepository->save($student);
+
+            return JsonResponse::ok(['data' => $this->serializeStudent($student)]);
+        } catch (\Throwable $exception) {
+            return $this->handleException($exception);
+        }
+    }
+
+    public function deleteStudent(string $id): array
+    {
+        $student = $this->studentRepository->find(new StudentId($id));
+        if ($student === null) {
+            return JsonResponse::error(404, 'Student not found');
+        }
+
+        $this->studentRepository->delete($student);
+
+        return JsonResponse::noContent();
+    }
+
+    public function enrollStudent(string $id, array $payload): array
+    {
+        if ($this->studentRepository->find(new StudentId($id)) === null) {
+            return JsonResponse::error(404, 'Student not found');
+        }
+
+        try {
+            $courseId = $this->requiredString($payload, 'courseId');
+            $this->enrollStudentHandler->handle(new EnrollStudentCommand($id, $courseId));
+
+            return $this->getStudent($id);
+        } catch (\Throwable $exception) {
+            return $this->handleException($exception);
+        }
     }
 
     public function listCourses(): array
@@ -113,7 +205,37 @@ final class ApiController
             return JsonResponse::error(409, $message);
         }
 
+        if (str_contains($normalizedMessage, 'already enrolled')) {
+            return JsonResponse::error(409, $message);
+        }
+
         return JsonResponse::error(400, $message);
+    }
+
+    private function serializeStudent(?Student $student): array
+    {
+        if ($student === null) {
+            throw new \RuntimeException('Student not found');
+        }
+
+        $enrollments = [];
+        foreach ($student->enrollments() as $enrollment) {
+            if ($enrollment instanceof Enrollment) {
+                $enrollments[] = [
+                    'id' => $enrollment->id()->value(),
+                    'courseId' => $enrollment->courseId()->value(),
+                    'status' => $enrollment->status(),
+                    'enrolledAt' => $enrollment->enrolledAt()->format(DATE_ATOM),
+                ];
+            }
+        }
+
+        return [
+            'id' => $student->id()->value(),
+            'name' => $student->name(),
+            'email' => $student->email(),
+            'enrollments' => $enrollments,
+        ];
     }
 
     private function serializeCourse(?Course $course): array
