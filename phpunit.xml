@@ -8,6 +8,7 @@
         <testsuite name="domain">
             <directory>tests/Domain</directory>
             <directory>tests/Application</directory>
+            <directory>tests/Functional</directory>
         </testsuite>
     </testsuites>
 </phpunit>
