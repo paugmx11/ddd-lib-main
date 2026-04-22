@@ -10,10 +10,11 @@ use App\Domain\Loan\LoanRepository;
 use App\Domain\User\UserRepository;
 use App\Application\BorrowBook\BorrowBookHandler;
 use App\Application\BorrowBook\BorrowBookCommand;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
 
 
-
+#[AllowMockObjectsWithoutExpectations]
 final class BorrowBookTest extends TestCase
 {
     public function test_user_can_borrow_a_book(): void
@@ -64,4 +65,3 @@ final class BorrowBookTest extends TestCase
         $handler->handle(new BorrowBookCommand('missing', 'user-1'));
     }
 }
-
