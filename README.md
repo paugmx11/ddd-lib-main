@@ -1,4 +1,4 @@
-# Monorepo
+# School
 
 Projecte de serveis web / apps híbrides.
 
