@@ -14,6 +14,7 @@ final class TeachersPageController
     public function index(BackendApi $backendApi): View
     {
         $teachers = [];
+        $subjectNameById = [];
         $error = '';
 
         try {
@@ -23,6 +24,15 @@ final class TeachersPageController
             } else {
                 $payload = $resp->json();
                 $error = is_array($payload) ? (string) ($payload['error'] ?? 'Backend error') : 'Backend error';
+            }
+
+            $sr = $backendApi->request('GET', '/api/subjects');
+            if ($sr->successful() && is_array($sr->json())) {
+                foreach ($sr->json() as $s) {
+                    if (is_array($s) && isset($s['id'], $s['name'])) {
+                        $subjectNameById[(string) $s['id']] = (string) $s['name'];
+                    }
+                }
             }
         } catch (\Throwable) {
             $error = 'Cannot reach backend';
@@ -34,6 +44,7 @@ final class TeachersPageController
 
         return view('teachers.index', [
             'teachers' => $teachers,
+            'subjectNameById' => $subjectNameById,
         ]);
     }
 
@@ -64,4 +75,3 @@ final class TeachersPageController
         return redirect('/teachers')->with('notice', 'Teacher deleted.');
     }
 }
-

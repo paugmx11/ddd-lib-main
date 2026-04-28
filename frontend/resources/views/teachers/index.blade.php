@@ -36,7 +36,10 @@
                         <tr>
                             <td style="font-weight:600">{{ $t['name'] ?? '' }}</td>
                             <td>{{ $t['email'] ?? '' }}</td>
-                            <td class="muted">{{ isset($t['subjectIds']) ? implode(', ', (array) $t['subjectIds']) : '' }}</td>
+                            <td class="muted">
+                                @php($subjectIds = isset($t['subjectIds']) ? (array) $t['subjectIds'] : [])
+                                {{ implode(', ', array_map(fn ($id) => $subjectNameById[(string) $id] ?? (string) $id, $subjectIds)) }}
+                            </td>
                             <td>
                                 <form method="POST" action="/teachers/{{ $t['id'] }}" style="margin:0; display:flex; justify-content:flex-end">
                                     @csrf
