@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Web\AuthController;
 use App\Http\Controllers\Web\DashboardController;
+use App\Http\Controllers\Web\CoursesPageController;
 use App\Http\Controllers\Web\StudentsPageController;
 use App\Http\Controllers\Web\TeachersPageController;
 use App\Http\Controllers\Web\SubjectsPageController;
@@ -24,6 +25,10 @@ Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth');
 Route::middleware('auth')->group(function (): void {
     Route::get('/', fn () => redirect('/dashboard'));
     Route::get('/dashboard', DashboardController::class);
+
+    Route::get('/courses', [CoursesPageController::class, 'index']);
+    Route::post('/courses', [CoursesPageController::class, 'store']);
+    Route::delete('/courses/{id}', [CoursesPageController::class, 'destroy']);
 
     Route::get('/students', [StudentsPageController::class, 'index']);
     Route::post('/students', [StudentsPageController::class, 'store']);

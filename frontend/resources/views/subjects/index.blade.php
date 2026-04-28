@@ -10,8 +10,15 @@
                 @error('name')<div style="color:#dc2626; font-size:12px">{{ $message }}</div>@enderror
             </div>
             <div class="field">
-                <label>Course ID</label>
-                <input class="input" name="courseId" value="{{ old('courseId') }}" required maxlength="200" />
+                <label>Course</label>
+                <select class="input" name="courseId" required>
+                    <option value="">Select course...</option>
+                    @foreach (($courses ?? []) as $c)
+                        <option value="{{ $c['id'] }}" @selected(old('courseId') == $c['id'])>
+                            {{ $c['name'] ?? $c['id'] }}
+                        </option>
+                    @endforeach
+                </select>
                 @error('courseId')<div style="color:#dc2626; font-size:12px">{{ $message }}</div>@enderror
             </div>
             <div class="actions">
@@ -19,7 +26,7 @@
             </div>
         </form>
         <div class="muted" style="font-size:12px; margin-top:10px">
-            Nota: per crear una assignatura necessites un `courseId` existent.
+            Nota: per crear una assignatura necessites un curs existent.
         </div>
     </div>
 
@@ -38,8 +45,13 @@
                     @forelse ($subjects as $s)
                         <tr>
                             <td style="font-weight:600">{{ $s['name'] ?? '' }}</td>
-                            <td class="muted">{{ $s['courseId'] ?? '' }}</td>
-                            <td class="muted">{{ isset($s['teacherIds']) ? implode(', ', (array) $s['teacherIds']) : '' }}</td>
+                            <td class="muted">
+                                {{ $courseNameById[(string) ($s['courseId'] ?? '')] ?? ($s['courseId'] ?? '') }}
+                            </td>
+                            <td class="muted">
+                                @php($teacherIds = isset($s['teacherIds']) ? (array) $s['teacherIds'] : [])
+                                {{ implode(', ', array_map(fn ($id) => $teacherNameById[(string) $id] ?? (string) $id, $teacherIds)) }}
+                            </td>
                             <td>
                                 <form method="POST" action="/subjects/{{ $s['id'] }}" style="margin:0; display:flex; justify-content:flex-end">
                                     @csrf

@@ -55,6 +55,7 @@
                 </div>
                 <nav class="nav">
                     <a href="/dashboard">Dashboard</a>
+                    <a href="/courses">Courses</a>
                     <a href="/students">Students</a>
                     <a href="/teachers">Teachers</a>
                     <a href="/subjects">Subjects</a>

@@ -14,6 +14,10 @@ final class SubjectsPageController
     public function index(BackendApi $backendApi): View
     {
         $subjects = [];
+        $courses = [];
+        $courseNameById = [];
+        $teachers = [];
+        $teacherNameById = [];
         $error = '';
 
         try {
@@ -23,6 +27,26 @@ final class SubjectsPageController
             } else {
                 $payload = $resp->json();
                 $error = is_array($payload) ? (string) ($payload['error'] ?? 'Backend error') : 'Backend error';
+            }
+
+            $cr = $backendApi->request('GET', '/api/courses');
+            if ($cr->successful() && is_array($cr->json())) {
+                $courses = $cr->json();
+                foreach ($courses as $c) {
+                    if (is_array($c) && isset($c['id'], $c['name'])) {
+                        $courseNameById[(string) $c['id']] = (string) $c['name'];
+                    }
+                }
+            }
+
+            $tr = $backendApi->request('GET', '/api/teachers');
+            if ($tr->successful() && is_array($tr->json())) {
+                $teachers = $tr->json();
+                foreach ($teachers as $t) {
+                    if (is_array($t) && isset($t['id'], $t['name'])) {
+                        $teacherNameById[(string) $t['id']] = (string) $t['name'];
+                    }
+                }
             }
         } catch (\Throwable) {
             $error = 'Cannot reach backend';
@@ -34,6 +58,9 @@ final class SubjectsPageController
 
         return view('subjects.index', [
             'subjects' => $subjects,
+            'courses' => $courses,
+            'courseNameById' => $courseNameById,
+            'teacherNameById' => $teacherNameById,
         ]);
     }
 
@@ -64,4 +91,3 @@ final class SubjectsPageController
         return redirect('/subjects')->with('notice', 'Subject deleted.');
     }
 }
-
