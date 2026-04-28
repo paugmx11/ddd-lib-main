@@ -31,6 +31,12 @@ Per obtenir un token:
 - `POST /api/auth/register`
 - o `POST /api/auth/login`
 
+## Arquitectura (resum)
+
+- Router API: `src/Infrastructure/Web/Router/ApiRouter.php` + rutes a `config/api_routes.php`
+- Controladors REST (un per recurs): `src/Infrastructure/Web/Controller/Api/*ApiController.php`
+- Application/Domain/Infrastructure (DDD): `src/Application`, `src/Domain`, `src/Infrastructure`
+
 ## Tests d'endpoint (Postman/Apidog)
 
 - Col·leccio: `docs/api/school-api.postman_collection.json`
@@ -42,4 +48,3 @@ Per obtenir un token:
 ```bash
 ./vendor/bin/phpunit
 ```
-
