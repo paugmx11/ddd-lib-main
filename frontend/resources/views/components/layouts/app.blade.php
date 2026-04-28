@@ -26,8 +26,9 @@
             .notice { border: 1px solid #e5e7eb; background: #fff; border-radius: 10px; padding: 10px 12px; margin-bottom: 12px; font-size: 14px; }
             .error { border-color: #fecaca; background: #fff; }
             h1 { font-size: 18px; margin: 0 0 12px 0; }
-            table { width: 100%; border-collapse: collapse; }
-            th, td { padding: 10px 12px; border-bottom: 1px solid #e5e7eb; text-align: left; vertical-align: top; font-size: 14px; }
+            .table-wrap { width: 100%; overflow-x: auto; }
+            table { width: 100%; border-collapse: collapse; min-width: 640px; }
+            th, td { padding: 10px 12px; border-bottom: 1px solid #e5e7eb; text-align: left; vertical-align: top; font-size: 14px; word-break: break-word; }
             th { font-size: 12px; color: #6b7280; font-weight: 600; }
             .muted { color: #6b7280; }
             .grid { display: grid; gap: 12px; }
@@ -38,7 +39,7 @@
             .input { border: 1px solid #d1d5db; border-radius: 8px; padding: 10px 12px; font-size: 14px; box-sizing: border-box; width: 100%; }
             .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: end; }
             .row > * { flex: 1 1 180px; }
-            .actions { display: flex; gap: 8px; justify-content: flex-end; }
+            .actions { display: flex; gap: 8px; justify-content: flex-end; flex: 0 0 auto; }
             .pill { display: inline-block; padding: 2px 8px; border-radius: 999px; background: #f3f4f6; color: #111827; font-size: 12px; }
         </style>
     </head>
@@ -77,4 +78,3 @@
         </div>
     </body>
 </html>
-

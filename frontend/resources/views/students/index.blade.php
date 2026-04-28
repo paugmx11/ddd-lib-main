@@ -21,36 +21,35 @@
     </div>
 
     <div class="card">
-        <table>
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Name</th>
-                    <th>Email</th>
-                    <th style="width:120px"></th>
-                </tr>
-            </thead>
-            <tbody>
-                @forelse ($students as $s)
+        <div class="table-wrap">
+            <table>
+                <thead>
                     <tr>
-                        <td><span class="pill">{{ $s['id'] }}</span></td>
-                        <td>{{ $s['name'] ?? '' }}</td>
-                        <td>{{ $s['email'] ?? '' }}</td>
-                        <td>
-                            <form method="POST" action="/students/{{ $s['id'] }}" style="margin:0; display:flex; justify-content:flex-end">
-                                @csrf
-                                @method('DELETE')
-                                <button class="btn btn-secondary" type="submit">Delete</button>
-                            </form>
-                        </td>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th style="width:120px"></th>
                     </tr>
-                @empty
-                    <tr>
-                        <td colspan="4" class="muted" style="padding:18px 12px">No data</td>
-                    </tr>
-                @endforelse
-            </tbody>
-        </table>
+                </thead>
+                <tbody>
+                    @forelse ($students as $s)
+                        <tr>
+                            <td style="font-weight:600">{{ $s['name'] ?? '' }}</td>
+                            <td>{{ $s['email'] ?? '' }}</td>
+                            <td>
+                                <form method="POST" action="/students/{{ $s['id'] }}" style="margin:0; display:flex; justify-content:flex-end">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button class="btn btn-secondary" type="submit">Delete</button>
+                                </form>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="3" class="muted" style="padding:18px 12px">No data</td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
     </div>
 </x-layouts.app>
-
