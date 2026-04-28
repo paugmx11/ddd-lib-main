@@ -26,7 +26,7 @@ Execució ràpida:
 ```bash
 cd backend
 composer install
-php -S 127.0.0.1:8000 index.php
+php -S localhost:8000 index.php
 ```
 
 Endpoints principals (exemples):
@@ -63,7 +63,7 @@ Flux d’ús:
 
 Configuració important:
 
-- `frontend/.env` defineix `BACKEND_BASE_URL` (per defecte `http://127.0.0.1:8000`)
+- `frontend/.env` defineix `BACKEND_BASE_URL` (per defecte `http://localhost:8000`)
 
 ## Tests
 

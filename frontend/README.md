@@ -11,7 +11,7 @@ El client parla amb el backend via un "proxy" de Laravel (evita CORS) i via crid
 
 Variables:
 
-- `BACKEND_BASE_URL` a `frontend/.env` (per defecte `http://127.0.0.1:8000`)
+- `BACKEND_BASE_URL` a `frontend/.env` (per defecte `http://localhost:8000`)
 
 ## Executar en local
 
@@ -19,7 +19,7 @@ Variables:
 
 ```bash
 cd backend
-php -S 127.0.0.1:8000 index.php
+php -S localhost:8000 index.php
 ```
 
 2) Arrenca el frontend:
