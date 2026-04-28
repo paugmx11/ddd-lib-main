@@ -1,13 +1,13 @@
-# Frontend (Laravel SPA)
+# Frontend (Laravel)
 
-Client SPA (Laravel) per consumir la nostra API del projecte DDD (`../backend`).
+Client Laravel (renderitzat al servidor) per consumir la nostra API del projecte DDD (`../backend`).
 
 ## Configuracio
 
-El client parla amb el backend via un "proxy" de Laravel (evita CORS):
+El client parla amb el backend via un "proxy" de Laravel (evita CORS) i via crides server-side:
 
-- SPA (browser) -> `frontend/client-api/*`
-- Laravel -> `BACKEND_BASE_URL` -> `backend/index.php`
+- Browser -> Laravel (rutes `/dashboard`, `/students`, `/teachers`, `/subjects`)
+- Laravel -> `BACKEND_BASE_URL` -> backend (`backend/index.php`)
 
 Variables:
 
@@ -26,12 +26,10 @@ php -S 127.0.0.1:8000 index.php
 
 ```bash
 cd frontend
-npm install
-npm run build
 php artisan serve --port=8001
 ```
 
-Obre `http://127.0.0.1:8001` i autentica't amb Laravel:
+Obre `http://127.0.0.1:8001` i autentica't amb Laravel (login/registre):
 
 - `/register` o `/login`
-- Despres, SPA a `/dashboard` (o `/`) amb seccions CRUD.
+- Despres, entra a `/dashboard` i ves a `/students`, `/teachers`, `/subjects`.

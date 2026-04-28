@@ -1,8 +1,11 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\SpaController;
 use App\Http\Controllers\Web\AuthController;
+use App\Http\Controllers\Web\DashboardController;
+use App\Http\Controllers\Web\StudentsPageController;
+use App\Http\Controllers\Web\TeachersPageController;
+use App\Http\Controllers\Web\SubjectsPageController;
 use App\Http\Controllers\ClientApi\SessionController;
 use App\Http\Controllers\ClientApi\CoursesController;
 use App\Http\Controllers\ClientApi\TeachersController;
@@ -17,6 +20,23 @@ Route::middleware('guest')->group(function (): void {
 });
 
 Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth');
+
+Route::middleware('auth')->group(function (): void {
+    Route::get('/', fn () => redirect('/dashboard'));
+    Route::get('/dashboard', DashboardController::class);
+
+    Route::get('/students', [StudentsPageController::class, 'index']);
+    Route::post('/students', [StudentsPageController::class, 'store']);
+    Route::delete('/students/{id}', [StudentsPageController::class, 'destroy']);
+
+    Route::get('/teachers', [TeachersPageController::class, 'index']);
+    Route::post('/teachers', [TeachersPageController::class, 'store']);
+    Route::delete('/teachers/{id}', [TeachersPageController::class, 'destroy']);
+
+    Route::get('/subjects', [SubjectsPageController::class, 'index']);
+    Route::post('/subjects', [SubjectsPageController::class, 'store']);
+    Route::delete('/subjects/{id}', [SubjectsPageController::class, 'destroy']);
+});
 
 Route::prefix('client-api')->middleware('auth')->group(function (): void {
     Route::get('/session', [SessionController::class, 'status']);
@@ -48,5 +68,3 @@ Route::prefix('client-api')->middleware('auth')->group(function (): void {
     Route::put('/subjects/{id}', [SubjectsController::class, 'update']);
     Route::delete('/subjects/{id}', [SubjectsController::class, 'destroy']);
 });
-
-Route::get('/{any?}', SpaController::class)->where('any', '.*')->middleware('auth');

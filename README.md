@@ -11,7 +11,7 @@ El repositori està separat en:
 
 - PHP (backend i frontend)
 - Composer
-- Node + npm (només per compilar assets del frontend amb Vite)
+- Node + npm (opcional, només si vols compilar assets amb Vite)
 
 ## Backend
 
@@ -40,7 +40,9 @@ Endpoints principals (exemples):
 
 Client SPA fet amb Laravel.
 
-Idea: el navegador parla amb el frontend (`/client-api/*`) i Laravel fa de “proxy” cap al backend (evita CORS).
+Frontend (Laravel) renderitzat al servidor (sense JS obligatori).
+
+Idea: Laravel fa de “proxy” cap al backend (evita CORS) i guarda el token del backend a la sessió quan fas login.
 
 - Documentació: `frontend/README.md`
 - Notes de proves client: `frontend/docs/PROVES_CLIENT.md`
@@ -50,8 +52,6 @@ Execució ràpida (en un altre terminal, amb el backend ja arrencat):
 ```bash
 cd frontend
 composer install
-npm install
-npm run build
 php artisan serve --port=8001
 ```
 
@@ -59,7 +59,7 @@ Flux d’ús:
 
 1) Registra’t o fes login a `http://127.0.0.1:8001/register` / `http://127.0.0.1:8001/login`
 2) Entra al dashboard a `http://127.0.0.1:8001/dashboard`
-3) Navega a `/students`, `/teachers`, `/subjects` (SPA, sense `#`)
+3) Navega a `/students`, `/teachers`, `/subjects`
 
 Configuració important:
 
