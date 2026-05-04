@@ -23,19 +23,26 @@ API base URL: `http://localhost:8000`
 
 ## Autenticacio
 
-Tots els endpoints `GET/POST/PUT/PATCH/DELETE` sota `/api/*` requereixen `Authorization: Bearer <token>`,
-excepte `/api/auth/*`.
+Tots els endpoints sota `/api/*` requereixen `Authorization: Bearer <token>`, excepte:
+
+- `POST /api/auth/register`
+- `POST /api/auth/login`
 
 Per obtenir un token:
 
 - `POST /api/auth/register`
 - o `POST /api/auth/login`
 
+Per revocar el token actual:
+
+- `POST /api/auth/logout` (requereix `Authorization: Bearer <token>`)
+
 ## Arquitectura (resum)
 
 - Router API: `src/Infrastructure/Web/Router/ApiRouter.php` + rutes a `config/api_routes.php`
 - Controladors REST (un per recurs): `src/Infrastructure/Web/Controller/Api/*ApiController.php`
 - Application/Domain/Infrastructure (DDD): `src/Application`, `src/Domain`, `src/Infrastructure`
+- Casos d’ús requerits (llista + ubicacions): `docs/USE_CASES.md`
 
 ## Tests d'endpoint (Postman/Apidog)
 

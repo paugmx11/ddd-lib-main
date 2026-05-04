@@ -3,8 +3,10 @@
 declare(strict_types=1);
 
 return [
-    ['POST', '#^/api/auth/register$#', 'authApi.register'],
-    ['POST', '#^/api/auth/login$#', 'authApi.login'],
+    // Route tuple format:
+    // [HTTP_METHOD, PATH_REGEX, "controllerKey.action", isPublic?]
+    ['POST', '#^/api/auth/register$#', 'authApi.register', true],
+    ['POST', '#^/api/auth/login$#', 'authApi.login', true],
     ['POST', '#^/api/auth/logout$#', 'authApi.logout'],
 
     ['GET', '#^/api/courses$#', 'courseApi.index'],

@@ -38,7 +38,7 @@
                         <th>Name</th>
                         <th>Dates</th>
                         <th>Description</th>
-                        <th style="width:120px"></th>
+                        <th style="width:200px"></th>
                     </tr>
                 </thead>
                 <tbody>
@@ -48,11 +48,14 @@
                             <td class="muted">{{ ($c['startDate'] ?? '') . ' → ' . ($c['endDate'] ?? '') }}</td>
                             <td class="muted">{{ $c['description'] ?? '' }}</td>
                             <td>
-                                <form method="POST" action="/courses/{{ $c['id'] }}" style="margin:0; display:flex; justify-content:flex-end">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button class="btn btn-secondary" type="submit">Delete</button>
-                                </form>
+                                <div style="display:flex; gap:8px; justify-content:flex-end">
+                                    <a class="btn btn-secondary" href="/courses/{{ $c['id'] }}/edit" style="text-decoration:none; display:inline-block">Edit</a>
+                                    <form method="POST" action="/courses/{{ $c['id'] }}" style="margin:0">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button class="btn btn-secondary" type="submit">Delete</button>
+                                    </form>
+                                </div>
                             </td>
                         </tr>
                     @empty
@@ -65,4 +68,3 @@
         </div>
     </div>
 </x-layouts.app>
-

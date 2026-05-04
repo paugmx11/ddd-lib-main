@@ -5,7 +5,7 @@ Aquest backend segueix una estructura DDD (Application / Domain / Infrastructure
 ## Routing
 
 - `backend/index.php` detecta si la ruta comença per `/api` i delega a `ApiRouter`.
-- Les rutes de l’API no estan hardcodejades al router: estan definides a `backend/config/api_routes.php`.
+- Les rutes de l’API no estan hardcodejades al router: estan definides a `backend/config/api_routes.php` (amb un flag opcional per marcar rutes públiques).
 - `backend/src/Infrastructure/Web/Router/ApiRouter.php` fa el “match” de ruta i crida un controlador concret.
 
 ## Controllers
@@ -20,7 +20,9 @@ Per evitar un `ApiController` “god mode”, cada recurs té el seu controlador
 
 ## Autenticació
 
-- Endpoints públics: `/api/auth/*`
+- Endpoints públics: `POST /api/auth/register` i `POST /api/auth/login`
 - Resta de endpoints: requereixen `Authorization: Bearer <token>`
-- Validació del token: `backend/src/Infrastructure/Web/Router/ApiRouter.php` (via `UserTokenRepository`)
-
+- Validació del token:
+  - Extractor: `backend/src/Infrastructure/Web/Auth/BearerTokenExtractor.php`
+  - Autenticador: `backend/src/Infrastructure/Web/Auth/UserTokenAuthenticator.php`
+  - Aplicació per ruta: `backend/src/Infrastructure/Web/Router/ApiRouter.php` (segons `backend/config/api_routes.php`)

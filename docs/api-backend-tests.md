@@ -1,4 +1,4 @@
-# API Backend RESTFUL
+# API Backend RESTful
 
 Aquest document serveix com a evidència de la 1a part del projecte de serveis web.
 
@@ -7,19 +7,31 @@ Aquest document serveix com a evidència de la 1a part del projecte de serveis w
 - `students`
 - `teachers`
 - `subjects`
-- `courses` com a recurs de suport per poder crear `subjects` i fer `enrollments`
+- `courses` com a recurs de suport per poder crear `subjects` i fer `enroll`
 
-## Arquitectura aplicada
+## Arquitectura aplicada (actual)
 
 L’esquema segueix el model treballat a classe:
 
-1. `index.php` llegeix `REQUEST_METHOD` i `REQUEST_URI`.
-2. [src/Http/Router.php](/home/linux/projectes/ddd-lib-main%20(còpia%201)/src/Http/Router.php) aplica routing manual amb `if` i `preg_match`.
-3. [src/Http/ApiController.php](/home/linux/projectes/ddd-lib-main%20(còpia%201)/src/Http/ApiController.php) transforma la petició HTTP en crides a la capa d’aplicació.
-4. Els `Handlers` d’aplicació reutilitzen el DDD existent.
-5. Els repositoris Doctrine persisteixen les entitats a SQLite.
+1. `backend/index.php` llegeix `REQUEST_METHOD` i `REQUEST_URI`.
+2. `backend/src/Infrastructure/Web/Router/ApiRouter.php` fa el match de ruta via regex i invoca el controlador.
+3. Les rutes estan definides a `backend/config/api_routes.php` (no estan hardcodejades al router).
+4. Cada recurs té el seu controlador (`backend/src/Infrastructure/Web/Controller/Api/*ApiController.php`) per evitar un “god controller”.
+5. Els `Handlers` d’aplicació reutilitzen el DDD existent i Doctrine persisteix a SQLite.
+
+## Autenticació
+
+- Públic: `POST /api/auth/register`, `POST /api/auth/login`
+- Privat: la resta de `/api/*` (inclòs `POST /api/auth/logout`)
+- Header: `Authorization: Bearer <token>`
 
 ## Endpoints definits
+
+### Auth
+
+- `POST /api/auth/register`
+- `POST /api/auth/login`
+- `POST /api/auth/logout` (requereix token)
 
 ### Students
 
@@ -28,7 +40,7 @@ L’esquema segueix el model treballat a classe:
 - `POST /api/students`
 - `PUT /api/students/{id}`
 - `DELETE /api/students/{id}`
-- `POST /api/students/{id}/enrollments`
+- `POST /api/students/{id}/enroll`
 
 ### Teachers
 
@@ -59,6 +71,26 @@ Base URL:
 
 ```text
 http://127.0.0.1:8000
+```
+
+### Login (obtenir token)
+
+`POST /api/auth/login`
+
+```json
+{
+  "email": "ada@example.com",
+  "password": "secret"
+}
+```
+
+Resposta:
+
+```json
+{
+  "token": "…",
+  "user": { "id": "…", "name": "…", "email": "…" }
+}
 ```
 
 ### Crear course
@@ -109,7 +141,7 @@ http://127.0.0.1:8000
 
 ### Matricular student a course
 
-`POST /api/students/{studentId}/enrollments`
+`POST /api/students/{studentId}/enroll`
 
 ```json
 {
@@ -150,7 +182,7 @@ vendor/bin/phpunit --filter ApiBackendTest
 Perquè es vegi clarament el treball per features, es recomana fer com a mínim aquests commits:
 
 1. `feat(api): add manual router and JSON responses`
-2. `feat(students): add REST endpoints for students and enrollments`
+2. `feat(students): add REST endpoints for students and enroll`
 3. `feat(teachers): add REST endpoints for teachers`
 4. `feat(subjects): add REST endpoints for subjects and teacher assignment`
 5. `test(api): add functional API tests and documentation`

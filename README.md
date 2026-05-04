@@ -18,6 +18,7 @@ El repositori està separat en:
 API REST + autenticació.
 
 - Documentació: `backend/README.md`
+- Checklist d’entrega (API + client): `docs/DELIVERABLES.md`
 - Proves/colecció API (Postman): `backend/docs/api/school-api.postman_collection.json`
 - Notes de tests i comprovacions: `backend/docs/api/PROVES_ENDPOINTS.md`
 

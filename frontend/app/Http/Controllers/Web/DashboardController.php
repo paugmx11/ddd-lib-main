@@ -13,12 +13,18 @@ final class DashboardController
     public function __invoke(BackendApi $backendApi): View
     {
         $counts = [
+            'courses' => null,
             'students' => null,
             'teachers' => null,
             'subjects' => null,
         ];
 
         try {
+            $courses = $backendApi->request('GET', '/api/courses');
+            if ($courses->successful() && is_array($courses->json())) {
+                $counts['courses'] = count($courses->json());
+            }
+
             $students = $backendApi->request('GET', '/api/students');
             if ($students->successful() && is_array($students->json())) {
                 $counts['students'] = count($students->json());
@@ -39,9 +45,6 @@ final class DashboardController
 
         return view('dashboard', [
             'counts' => $counts,
-            'userEmail' => Auth::user()?->email ?? '',
-            'hasBackendToken' => (string) session('backend_token', '') !== '',
         ]);
     }
 }
-

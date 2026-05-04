@@ -64,6 +64,46 @@ final class TeachersPageController
         return redirect('/teachers')->with('notice', 'Teacher created.');
     }
 
+    public function edit(string $id, BackendApi $backendApi): View|RedirectResponse
+    {
+        try {
+            $resp = $backendApi->request('GET', "/api/teachers/{$id}");
+        } catch (\Throwable) {
+            return redirect('/teachers')->with('error', 'Cannot reach backend');
+        }
+
+        if (!$resp->successful()) {
+            $payload = $resp->json();
+            $message = is_array($payload) ? (string) ($payload['error'] ?? 'Backend error') : 'Backend error';
+            return redirect('/teachers')->with('error', $message);
+        }
+
+        $teacher = $resp->json();
+        if (!is_array($teacher)) {
+            return redirect('/teachers')->with('error', 'Backend error');
+        }
+
+        return view('teachers.edit', [
+            'teacher' => $teacher,
+        ]);
+    }
+
+    public function update(string $id, Request $request, BackendApi $backendApi): RedirectResponse
+    {
+        $data = $request->validate([
+            'name' => ['required', 'string', 'max:200'],
+            'email' => ['required', 'email', 'max:200'],
+        ]);
+
+        $resp = $backendApi->request('PUT', "/api/teachers/{$id}", $data);
+        if (!$resp->successful()) {
+            $payload = $resp->json();
+            return back()->withInput()->with('error', is_array($payload) ? ($payload['error'] ?? 'Backend error') : 'Backend error');
+        }
+
+        return redirect('/teachers')->with('notice', 'Teacher updated.');
+    }
+
     public function destroy(string $id, BackendApi $backendApi): RedirectResponse
     {
         $resp = $backendApi->request('DELETE', "/api/teachers/{$id}");

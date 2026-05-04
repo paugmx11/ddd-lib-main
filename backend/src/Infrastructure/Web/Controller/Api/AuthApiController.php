@@ -12,13 +12,18 @@ use App\Domain\User\User;
 use App\Domain\User\UserId;
 use App\Domain\User\UserToken;
 use App\Domain\User\UserTokenRepository;
+use App\Infrastructure\Web\Auth\BearerTokenExtractor;
+use App\Infrastructure\Web\Http\JsonHttpResponder;
 
 final class AuthApiController
 {
+    use JsonHttpResponder;
+
     public function __construct(
         private RegisterUserHandler $registerUserHandler,
         private LoginUserHandler $loginUserHandler,
-        private UserTokenRepository $userTokenRepository
+        private UserTokenRepository $userTokenRepository,
+        private BearerTokenExtractor $bearerTokenExtractor
     ) {}
 
     public function register(): void
@@ -96,7 +101,7 @@ final class AuthApiController
 
     public function logout(): void
     {
-        $token = $this->extractBearerToken();
+        $token = $this->bearerTokenExtractor->extractFromServerGlobals();
         if ($token === null) {
             $this->jsonResponse(['error' => 'Unauthorized'], 401);
             return;
@@ -120,42 +125,6 @@ final class AuthApiController
         $this->userTokenRepository->save(new UserToken($token, $user->id()));
 
         return $token;
-    }
-
-    private function extractBearerToken(): ?string
-    {
-        $header = (string) ($_SERVER['HTTP_AUTHORIZATION'] ?? '');
-        if (!str_starts_with($header, 'Bearer ')) {
-            return null;
-        }
-
-        $token = trim(substr($header, 7));
-
-        return $token === '' ? null : $token;
-    }
-
-    private function readJsonBody(): ?array
-    {
-        $raw = (string) file_get_contents('php://input');
-        if ($raw === '') {
-            $this->jsonResponse(['error' => 'Empty request body'], 400);
-            return null;
-        }
-
-        $data = json_decode($raw, true);
-        if (!is_array($data)) {
-            $this->jsonResponse(['error' => 'Invalid JSON body'], 400);
-            return null;
-        }
-
-        return $data;
-    }
-
-    private function jsonResponse(array $payload, int $status): void
-    {
-        http_response_code($status);
-        header('Content-Type: application/json; charset=utf-8');
-        echo json_encode($payload);
     }
 
     private function serializeUser(User $user): array

@@ -13,9 +13,12 @@ use App\Application\UnassignTeacherFromSubject\UnassignTeacherFromSubjectHandler
 use App\Domain\Teacher\Teacher;
 use App\Domain\Teacher\TeacherId;
 use App\Domain\Teacher\TeacherRepository;
+use App\Infrastructure\Web\Http\JsonHttpResponder;
 
 final class TeacherApiController
 {
+    use JsonHttpResponder;
+
     public function __construct(
         private TeacherRepository $teacherRepository,
         private CreateTeacherHandler $createTeacherHandler,
@@ -206,30 +209,6 @@ final class TeacherApiController
         }
 
         $this->jsonResponse(['message' => 'Teacher unassigned from subject'], 200);
-    }
-
-    private function readJsonBody(): ?array
-    {
-        $raw = (string) file_get_contents('php://input');
-        if ($raw === '') {
-            $this->jsonResponse(['error' => 'Empty request body'], 400);
-            return null;
-        }
-
-        $data = json_decode($raw, true);
-        if (!is_array($data)) {
-            $this->jsonResponse(['error' => 'Invalid JSON body'], 400);
-            return null;
-        }
-
-        return $data;
-    }
-
-    private function jsonResponse(array $payload, int $status): void
-    {
-        http_response_code($status);
-        header('Content-Type: application/json; charset=utf-8');
-        echo json_encode($payload);
     }
 
     private function serializeTeacher(Teacher $teacher): array

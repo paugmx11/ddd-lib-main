@@ -15,8 +15,6 @@ Frontend:
 
 ```bash
 cd frontend
-npm install
-npm run dev
 php artisan serve --port=8001
 ```
 

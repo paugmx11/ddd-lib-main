@@ -31,6 +31,8 @@ use App\Infrastructure\Web\Controller\Api\StudentApiController;
 use App\Infrastructure\Web\Controller\Api\TeacherApiController;
 use App\Infrastructure\Web\Controller\Api\SubjectApiController;
 use App\Infrastructure\Web\Router\ApiRouter;
+use App\Infrastructure\Web\Auth\BearerTokenExtractor;
+use App\Infrastructure\Web\Auth\UserTokenAuthenticator;
 
 // Load environment variables
 $dotenv = Dotenv::createImmutable(__DIR__);
@@ -60,6 +62,9 @@ $registerUserHandler = new RegisterUserHandler($userRepository);
 $loginUserHandler = new LoginUserHandler($userRepository);
 
 // Create controllers
+$bearerTokenExtractor = new BearerTokenExtractor();
+$apiAuthenticator = new UserTokenAuthenticator($userTokenRepository, $bearerTokenExtractor);
+
 $studentController = new StudentController(
     $studentRepository,
     $courseRepository,
@@ -88,7 +93,8 @@ $courseApiController = new CourseApiController(
 $authApiController = new AuthApiController(
     $registerUserHandler,
     $loginUserHandler,
-    $userTokenRepository
+    $userTokenRepository,
+    $bearerTokenExtractor
 );
 
 $studentApiController = new StudentApiController(
@@ -128,7 +134,7 @@ if (is_string($path) && str_starts_with($path, '/api')) {
         'studentApi' => $studentApiController,
         'teacherApi' => $teacherApiController,
         'subjectApi' => $subjectApiController,
-    ], $userTokenRepository);
+    ], $apiAuthenticator);
     $apiRouter->dispatch($method, $path);
     return;
 }

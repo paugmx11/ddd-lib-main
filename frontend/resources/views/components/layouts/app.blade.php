@@ -34,6 +34,9 @@
             .grid { display: grid; gap: 12px; }
             .grid-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
             @media (max-width: 800px) { .grid-3 { grid-template-columns: 1fr; } }
+            .grid-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+            @media (max-width: 1000px) { .grid-4 { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+            @media (max-width: 800px) { .grid-4 { grid-template-columns: 1fr; } }
             .field { display: grid; gap: 6px; }
             .field label { font-size: 12px; font-weight: 600; color: #374151; }
             .input { border: 1px solid #d1d5db; border-radius: 8px; padding: 10px 12px; font-size: 14px; box-sizing: border-box; width: 100%; }
@@ -50,7 +53,6 @@
                     <div class="logo"></div>
                     <div>
                         <div class="brand-title">School Client</div>
-                        <div class="brand-sub">Laravel (server-rendered)</div>
                     </div>
                 </div>
                 <nav class="nav">

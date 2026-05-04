@@ -3,3 +3,7 @@ vendor/
 
 .env
 *.sqlite
+
+# Local tooling / generated
+.codex
+frontend/node_modules/

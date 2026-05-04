@@ -80,6 +80,61 @@ final class SubjectsPageController
         return redirect('/subjects')->with('notice', 'Subject created.');
     }
 
+    public function edit(string $id, BackendApi $backendApi): View|RedirectResponse
+    {
+        $courses = [];
+        $courseNameById = [];
+
+        try {
+            $resp = $backendApi->request('GET', "/api/subjects/{$id}");
+            $cr = $backendApi->request('GET', '/api/courses');
+        } catch (\Throwable) {
+            return redirect('/subjects')->with('error', 'Cannot reach backend');
+        }
+
+        if (!$resp->successful()) {
+            $payload = $resp->json();
+            $message = is_array($payload) ? (string) ($payload['error'] ?? 'Backend error') : 'Backend error';
+            return redirect('/subjects')->with('error', $message);
+        }
+
+        $subject = $resp->json();
+        if (!is_array($subject)) {
+            return redirect('/subjects')->with('error', 'Backend error');
+        }
+
+        if ($cr->successful() && is_array($cr->json())) {
+            $courses = $cr->json();
+            foreach ($courses as $c) {
+                if (is_array($c) && isset($c['id'], $c['name'])) {
+                    $courseNameById[(string) $c['id']] = (string) $c['name'];
+                }
+            }
+        }
+
+        return view('subjects.edit', [
+            'subject' => $subject,
+            'courses' => $courses,
+            'courseNameById' => $courseNameById,
+        ]);
+    }
+
+    public function update(string $id, Request $request, BackendApi $backendApi): RedirectResponse
+    {
+        $data = $request->validate([
+            'name' => ['required', 'string', 'max:200'],
+            'courseId' => ['required', 'string', 'max:200'],
+        ]);
+
+        $resp = $backendApi->request('PUT', "/api/subjects/{$id}", $data);
+        if (!$resp->successful()) {
+            $payload = $resp->json();
+            return back()->withInput()->with('error', is_array($payload) ? ($payload['error'] ?? 'Backend error') : 'Backend error');
+        }
+
+        return redirect('/subjects')->with('notice', 'Subject updated.');
+    }
+
     public function destroy(string $id, BackendApi $backendApi): RedirectResponse
     {
         $resp = $backendApi->request('DELETE', "/api/subjects/{$id}");

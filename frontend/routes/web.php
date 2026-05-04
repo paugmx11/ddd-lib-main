@@ -28,18 +28,26 @@ Route::middleware('auth')->group(function (): void {
 
     Route::get('/courses', [CoursesPageController::class, 'index']);
     Route::post('/courses', [CoursesPageController::class, 'store']);
+    Route::get('/courses/{id}/edit', [CoursesPageController::class, 'edit']);
+    Route::put('/courses/{id}', [CoursesPageController::class, 'update']);
     Route::delete('/courses/{id}', [CoursesPageController::class, 'destroy']);
 
     Route::get('/students', [StudentsPageController::class, 'index']);
     Route::post('/students', [StudentsPageController::class, 'store']);
+    Route::get('/students/{id}/edit', [StudentsPageController::class, 'edit']);
+    Route::put('/students/{id}', [StudentsPageController::class, 'update']);
     Route::delete('/students/{id}', [StudentsPageController::class, 'destroy']);
 
     Route::get('/teachers', [TeachersPageController::class, 'index']);
     Route::post('/teachers', [TeachersPageController::class, 'store']);
+    Route::get('/teachers/{id}/edit', [TeachersPageController::class, 'edit']);
+    Route::put('/teachers/{id}', [TeachersPageController::class, 'update']);
     Route::delete('/teachers/{id}', [TeachersPageController::class, 'destroy']);
 
     Route::get('/subjects', [SubjectsPageController::class, 'index']);
     Route::post('/subjects', [SubjectsPageController::class, 'store']);
+    Route::get('/subjects/{id}/edit', [SubjectsPageController::class, 'edit']);
+    Route::put('/subjects/{id}', [SubjectsPageController::class, 'update']);
     Route::delete('/subjects/{id}', [SubjectsPageController::class, 'destroy']);
 });
 

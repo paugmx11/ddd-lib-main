@@ -4,30 +4,27 @@ declare(strict_types=1);
 
 namespace App\Infrastructure\Web\Router;
 
-use App\Domain\User\UserTokenRepository;
+use App\Infrastructure\Web\Auth\UserTokenAuthenticator;
 
 final class ApiRouter
 {
     /**
-     * @param array<int, array{0:string,1:string,2:string}> $routes
+     * @param array<int, array{0:string,1:string,2:string,3?:bool}> $routes
      * @param array<string, object> $controllers
      */
     public function __construct(
         private array $routes,
         private array $controllers,
-        private UserTokenRepository $userTokenRepository
+        private UserTokenAuthenticator $authenticator
     ) {}
 
     public function dispatch(string $method, string $path): void
     {
-        if (!$this->authenticate($path)) {
-            return;
-        }
-
         $allowedMethods = [];
 
         foreach ($this->routes as $route) {
             [$routeMethod, $pattern, $handler] = $route;
+            $isPublic = (bool) ($route[3] ?? false);
 
             if (!preg_match($pattern, $path, $matches)) {
                 continue;
@@ -37,6 +34,11 @@ final class ApiRouter
 
             if (strtoupper($method) !== $routeMethod) {
                 continue;
+            }
+
+            if (!$isPublic && !$this->authenticator->isAuthenticated()) {
+                $this->jsonError('Unauthorized', 401);
+                return;
             }
 
             [$controllerKey, $action] = explode('.', $handler, 2);
@@ -66,35 +68,6 @@ final class ApiRouter
     {
         http_response_code($status);
         header('Content-Type: application/json; charset=utf-8');
-        echo json_encode(['error' => $message]);
-    }
-
-    private function authenticate(string $path): bool
-    {
-        if (str_starts_with($path, '/api/auth/')) {
-            return true;
-        }
-
-        $authHeader = (string) ($_SERVER['HTTP_AUTHORIZATION'] ?? '');
-        if (!str_starts_with($authHeader, 'Bearer ')) {
-            $this->jsonError('Unauthorized', 401);
-            return false;
-        }
-
-        $token = trim(substr($authHeader, 7));
-        if ($token === '') {
-            $this->jsonError('Unauthorized', 401);
-            return false;
-        }
-
-        $userToken = $this->userTokenRepository->find($token);
-        if ($userToken === null) {
-            $this->jsonError('Unauthorized', 401);
-            return false;
-        }
-
-        $_SERVER['AUTH_USER_ID'] = $userToken->userId()->value();
-
-        return true;
+        echo json_encode(['error' => $message], JSON_UNESCAPED_SLASHES);
     }
 }

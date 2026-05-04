@@ -55,6 +55,48 @@ final class CoursesPageController
         return redirect('/courses')->with('notice', 'Course created.');
     }
 
+    public function edit(string $id, BackendApi $backendApi): View|RedirectResponse
+    {
+        try {
+            $resp = $backendApi->request('GET', "/api/courses/{$id}");
+        } catch (\Throwable) {
+            return redirect('/courses')->with('error', 'Cannot reach backend');
+        }
+
+        if (!$resp->successful()) {
+            $payload = $resp->json();
+            $message = is_array($payload) ? (string) ($payload['error'] ?? 'Backend error') : 'Backend error';
+            return redirect('/courses')->with('error', $message);
+        }
+
+        $course = $resp->json();
+        if (!is_array($course)) {
+            return redirect('/courses')->with('error', 'Backend error');
+        }
+
+        return view('courses.edit', [
+            'course' => $course,
+        ]);
+    }
+
+    public function update(string $id, Request $request, BackendApi $backendApi): RedirectResponse
+    {
+        $data = $request->validate([
+            'name' => ['required', 'string', 'max:200'],
+            'startDate' => ['required', 'date'],
+            'endDate' => ['required', 'date'],
+            'description' => ['nullable', 'string', 'max:500'],
+        ]);
+
+        $resp = $backendApi->request('PUT', "/api/courses/{$id}", $data);
+        if (!$resp->successful()) {
+            $payload = $resp->json();
+            return back()->withInput()->with('error', is_array($payload) ? ($payload['error'] ?? 'Backend error') : 'Backend error');
+        }
+
+        return redirect('/courses')->with('notice', 'Course updated.');
+    }
+
     public function destroy(string $id, BackendApi $backendApi): RedirectResponse
     {
         $resp = $backendApi->request('DELETE', "/api/courses/{$id}");
@@ -66,4 +108,3 @@ final class CoursesPageController
         return redirect('/courses')->with('notice', 'Course deleted.');
     }
 }
-

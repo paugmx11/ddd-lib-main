@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Domain\User;
 
-use App\Domain\Loan\Loan;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity]
@@ -23,14 +22,6 @@ class User
 
     #[ORM\Column(type: 'string')]
     private string $passwordHash;
-
-    #[ORM\OneToMany(
-        mappedBy: 'user',
-        targetEntity: Loan::class,
-        cascade: ['persist'],
-        orphanRemoval: true
-    )]
-    private iterable $loans;
 
     public function __construct(
         UserId $id,
@@ -54,7 +45,6 @@ class User
         $this->name = $name;
         $this->email = strtolower($email);
         $this->passwordHash = $passwordHash;
-        $this->loans = [];
     }
 
     public function id(): UserId
@@ -75,16 +65,6 @@ class User
     public function passwordHash(): string
     {
         return $this->passwordHash;
-    }
-
-    public function addLoan(Loan $loan): void
-    {
-        $this->loans[] = $loan;
-    }
-
-    public function loans(): iterable
-    {
-        return $this->loans;
     }
 
     public function updateProfile(string $name, string $email): void
