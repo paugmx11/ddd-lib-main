@@ -18,6 +18,8 @@ Route::middleware('guest')->group(function (): void {
     Route::post('/login', [AuthController::class, 'login']);
     Route::get('/register', [AuthController::class, 'showRegister']);
     Route::post('/register', [AuthController::class, 'register']);
+    // Google OAuth callback
+    Route::get('/auth/google/callback', [AuthController::class, 'googleCallback']);
 });
 
 Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth');

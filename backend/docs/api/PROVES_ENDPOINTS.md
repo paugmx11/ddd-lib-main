@@ -2,10 +2,6 @@
 
 Aquesta guia serveix per generar evidencies (captures o export) del funcionament dels endpoints REST amb Postman o Apidog.
 
-Document d’evidències per entregar:
-
-- `docs/api/EVIDENCIES_ENDPOINTS.md`
-
 ## 1) Arrencar el backend
 
 ```bash
