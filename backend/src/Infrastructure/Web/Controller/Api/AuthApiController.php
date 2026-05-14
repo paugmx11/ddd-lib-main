@@ -8,6 +8,8 @@ use App\Application\LoginUser\LoginUserCommand;
 use App\Application\LoginUser\LoginUserHandler;
 use App\Application\RegisterUser\RegisterUserCommand;
 use App\Application\RegisterUser\RegisterUserHandler;
+use App\Application\LoginWithGoogle\LoginWithGoogleHandler;
+use App\Application\LoginWithGoogle\LoginWithGoogleCommand;
 use App\Domain\User\User;
 use App\Domain\User\UserId;
 use App\Domain\User\UserToken;
@@ -24,7 +26,41 @@ final class AuthApiController
         private LoginUserHandler $loginUserHandler,
         private UserTokenRepository $userTokenRepository,
         private BearerTokenExtractor $bearerTokenExtractor
+        , private ?LoginWithGoogleHandler $loginWithGoogleHandler = null
     ) {}
+
+    public function exchangeGoogleCode(): void
+    {
+        if ($this->loginWithGoogleHandler === null) {
+            $this->jsonResponse(['error' => 'Not implemented'], 501);
+            return;
+        }
+
+        $data = $this->readJsonBody();
+        if ($data === null) {
+            return;
+        }
+
+        $code = trim((string) ($data['code'] ?? ''));
+        if ($code === '') {
+            $this->jsonResponse(['error' => 'code is required'], 422);
+            return;
+        }
+
+        try {
+            $user = $this->loginWithGoogleHandler->handle(new LoginWithGoogleCommand($code));
+        } catch (\RuntimeException $e) {
+            $this->jsonResponse(['error' => $e->getMessage()], 400);
+            return;
+        }
+
+        $token = $this->issueToken($user);
+
+        $this->jsonResponse([
+            'token' => $token,
+            'user' => $this->serializeUser($user),
+        ], 200);
+    }
 
     public function register(): void
     {

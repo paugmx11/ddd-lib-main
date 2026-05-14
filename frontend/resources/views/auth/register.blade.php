@@ -34,5 +34,17 @@
                 <a href="/login">I already have an account</a>
             </div>
         </form>
+        <div style="margin-top:12px">
+            @php
+                $googleUrl = 'https://accounts.google.com/o/oauth2/v2/auth?' . http_build_query([
+                    'client_id' => env('GOOGLE_CLIENT_ID'),
+                    'redirect_uri' => env('GOOGLE_REDIRECT_URI'),
+                    'response_type' => 'code',
+                    'scope' => 'openid email profile',
+                    'prompt' => 'select_account',
+                ]);
+            @endphp
+            <a class="button outline" href="{{ $googleUrl }}">Sign in with Google</a>
+        </div>
     </div>
 </x-auth.layout>

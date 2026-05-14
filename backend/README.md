@@ -42,7 +42,6 @@ Per revocar el token actual:
 - Router API: `src/Infrastructure/Web/Router/ApiRouter.php` + rutes a `config/api_routes.php`
 - Controladors REST (un per recurs): `src/Infrastructure/Web/Controller/Api/*ApiController.php`
 - Application/Domain/Infrastructure (DDD): `src/Application`, `src/Domain`, `src/Infrastructure`
-- Casos d’ús requerits (llista + ubicacions): `docs/USE_CASES.md`
 
 ## Tests d'endpoint (Postman/Apidog)
 

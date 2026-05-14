@@ -33,6 +33,8 @@ use App\Infrastructure\Web\Controller\Api\SubjectApiController;
 use App\Infrastructure\Web\Router\ApiRouter;
 use App\Infrastructure\Web\Auth\BearerTokenExtractor;
 use App\Infrastructure\Web\Auth\UserTokenAuthenticator;
+use App\Infrastructure\Auth\OAuth\GoogleOAuthClient;
+use App\Application\LoginWithGoogle\LoginWithGoogleHandler;
 
 // Load environment variables
 $dotenv = Dotenv::createImmutable(__DIR__);
@@ -60,6 +62,19 @@ $assignTeacherHandler = new AssignTeacherToSubjectHandler($teacherRepository, $s
 $unassignTeacherHandler = new UnassignTeacherFromSubjectHandler($teacherRepository, $subjectRepository);
 $registerUserHandler = new RegisterUserHandler($userRepository);
 $loginUserHandler = new LoginUserHandler($userRepository);
+// Google OAuth client configuration from env (optional)
+$googleConfig = [
+    'client_id' => $_ENV['GOOGLE_CLIENT_ID'] ?? '',
+    'client_secret' => $_ENV['GOOGLE_CLIENT_SECRET'] ?? '',
+    'redirect_uri' => $_ENV['GOOGLE_REDIRECT_URI'] ?? '',
+];
+
+$googleClient = null;
+$loginWithGoogleHandler = null;
+if ($googleConfig['client_id'] !== '' && $googleConfig['client_secret'] !== '') {
+    $googleClient = new GoogleOAuthClient($googleConfig);
+    $loginWithGoogleHandler = new LoginWithGoogleHandler($googleClient, $userRepository);
+}
 
 // Create controllers
 $bearerTokenExtractor = new BearerTokenExtractor();
@@ -95,6 +110,7 @@ $authApiController = new AuthApiController(
     $loginUserHandler,
     $userTokenRepository,
     $bearerTokenExtractor
+    , $loginWithGoogleHandler
 );
 
 $studentApiController = new StudentApiController(
