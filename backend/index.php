@@ -35,6 +35,7 @@ use App\Infrastructure\Web\Auth\BearerTokenExtractor;
 use App\Infrastructure\Web\Auth\UserTokenAuthenticator;
 use App\Infrastructure\Auth\OAuth\GoogleOAuthClient;
 use App\Application\LoginWithGoogle\LoginWithGoogleHandler;
+use App\Application\Auth\AuthService;
 
 // Load environment variables
 $dotenv = Dotenv::createImmutable(__DIR__);
@@ -105,12 +106,15 @@ $courseApiController = new CourseApiController(
     $createCourseHandler
 );
 
+$authService = new AuthService($userTokenRepository);
+
 $authApiController = new AuthApiController(
     $registerUserHandler,
     $loginUserHandler,
     $userTokenRepository,
-    $bearerTokenExtractor
-    , $loginWithGoogleHandler
+    $bearerTokenExtractor,
+    $authService,
+    $loginWithGoogleHandler
 );
 
 $studentApiController = new StudentApiController(
