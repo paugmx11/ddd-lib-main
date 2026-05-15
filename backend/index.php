@@ -148,13 +148,15 @@ $path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 
 if (is_string($path) && str_starts_with($path, '/api')) {
     $apiRoutes = require __DIR__ . '/config/api_routes.php';
+    $authMiddleware = new App\Infrastructure\Web\Middleware\AuthMiddleware($apiAuthenticator);
+
     $apiRouter = new ApiRouter($apiRoutes, [
         'authApi' => $authApiController,
         'courseApi' => $courseApiController,
         'studentApi' => $studentApiController,
         'teacherApi' => $teacherApiController,
         'subjectApi' => $subjectApiController,
-    ], $apiAuthenticator);
+    ], $apiAuthenticator, $authMiddleware);
     $apiRouter->dispatch($method, $path);
     return;
 }

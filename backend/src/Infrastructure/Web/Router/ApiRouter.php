@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Infrastructure\Web\Router;
 
 use App\Infrastructure\Web\Auth\UserTokenAuthenticator;
+use App\Infrastructure\Web\Middleware\AuthMiddleware;
 
 final class ApiRouter
 {
@@ -15,7 +16,8 @@ final class ApiRouter
     public function __construct(
         private array $routes,
         private array $controllers,
-        private UserTokenAuthenticator $authenticator
+        private UserTokenAuthenticator $authenticator,
+        private ?AuthMiddleware $authMiddleware = null
     ) {}
 
     public function dispatch(string $method, string $path): void
@@ -36,8 +38,9 @@ final class ApiRouter
                 continue;
             }
 
-            if (!$isPublic && !$this->authenticator->isAuthenticated()) {
-                $this->jsonError('Unauthorized', 401);
+            // Run auth middleware if provided (it will emit response on failure)
+            $middleware = $this->authMiddleware ?? new AuthMiddleware($this->authenticator);
+            if (!$middleware->handle($isPublic)) {
                 return;
             }
 
