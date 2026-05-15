@@ -84,10 +84,13 @@ final class SubjectsPageController
     {
         $courses = [];
         $courseNameById = [];
+        $teachers = [];
+        $teacherNameById = [];
 
         try {
             $resp = $backendApi->request('GET', "/api/subjects/{$id}");
             $cr = $backendApi->request('GET', '/api/courses');
+            $tr = $backendApi->request('GET', '/api/teachers');
         } catch (\Throwable) {
             return redirect('/subjects')->with('error', 'Cannot reach backend');
         }
@@ -112,10 +115,21 @@ final class SubjectsPageController
             }
         }
 
+        if (isset($tr) && $tr->successful() && is_array($tr->json())) {
+            $teachers = $tr->json();
+            foreach ($teachers as $t) {
+                if (is_array($t) && isset($t['id'], $t['name'])) {
+                    $teacherNameById[(string) $t['id']] = (string) $t['name'];
+                }
+            }
+        }
+
         return view('subjects.edit', [
             'subject' => $subject,
             'courses' => $courses,
             'courseNameById' => $courseNameById,
+            'teachers' => $teachers,
+            'teacherNameById' => $teacherNameById,
         ]);
     }
 

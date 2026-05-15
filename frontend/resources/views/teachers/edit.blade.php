@@ -23,5 +23,36 @@
             </div>
         </form>
     </div>
+
+    <div class="card" style="margin-top:12px">
+        <h3>Assign subjects</h3>
+        @if (!empty($teacher['subjects'] ?? []))
+            <ul>
+                @foreach ($teacher['subjects'] as $s)
+                    <li>
+                        {{ $s['name'] ?? $s['id'] }}
+                        <form method="POST" action="/client-api/teachers/{{ $teacher['id'] }}/unassign" style="display:inline-block; margin-left:8px">
+                            @csrf
+                            <input type="hidden" name="subjectId" value="{{ $s['id'] }}" />
+                            <button class="btn btn-danger" type="submit">Unassign</button>
+                        </form>
+                    </li>
+                @endforeach
+            </ul>
+        @endif
+
+        <form method="POST" action="/client-api/teachers/{{ $teacher['id'] }}/assign" class="row">
+            @csrf
+            <label>Subject</label>
+            <select name="subjectId" class="input" required>
+                @foreach ($subjectNameById as $sid => $sname)
+                    <option value="{{ $sid }}">{{ $sname }}</option>
+                @endforeach
+            </select>
+            <div class="actions">
+                <button class="btn" type="submit">Assign</button>
+            </div>
+        </form>
+    </div>
 </x-layouts.app>
 

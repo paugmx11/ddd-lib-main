@@ -14,6 +14,7 @@ use App\Domain\User\User;
 use App\Domain\User\UserId;
 use App\Domain\User\UserToken;
 use App\Domain\User\UserTokenRepository;
+use App\Application\Auth\AuthService;
 use App\Infrastructure\Web\Auth\BearerTokenExtractor;
 use App\Infrastructure\Web\Http\JsonHttpResponder;
 
@@ -25,8 +26,9 @@ final class AuthApiController
         private RegisterUserHandler $registerUserHandler,
         private LoginUserHandler $loginUserHandler,
         private UserTokenRepository $userTokenRepository,
-        private BearerTokenExtractor $bearerTokenExtractor
-        , private ?LoginWithGoogleHandler $loginWithGoogleHandler = null
+        private BearerTokenExtractor $bearerTokenExtractor,
+        private AuthService $authService,
+        private ?LoginWithGoogleHandler $loginWithGoogleHandler = null
     ) {}
 
     public function exchangeGoogleCode(): void
@@ -54,7 +56,7 @@ final class AuthApiController
             return;
         }
 
-        $token = $this->issueToken($user);
+    $token = $this->authService->issueToken($user);
 
         $this->jsonResponse([
             'token' => $token,
@@ -95,7 +97,7 @@ final class AuthApiController
             return;
         }
 
-        $token = $this->issueToken($user);
+    $token = $this->authService->issueToken($user);
 
         $this->jsonResponse([
             'token' => $token,
@@ -127,7 +129,7 @@ final class AuthApiController
             return;
         }
 
-        $token = $this->issueToken($user);
+        $token = $this->authService->issueToken($user);
 
         $this->jsonResponse([
             'token' => $token,
@@ -149,19 +151,11 @@ final class AuthApiController
             return;
         }
 
-        $this->userTokenRepository->deleteByUser($userToken->userId());
+        $this->authService->invalidateTokensForUser($userToken->userId());
         $this->jsonResponse(['message' => 'Logged out'], 200);
     }
 
-    private function issueToken(User $user): string
-    {
-        $this->userTokenRepository->deleteByUser($user->id());
 
-        $token = bin2hex(random_bytes(32));
-        $this->userTokenRepository->save(new UserToken($token, $user->id()));
-
-        return $token;
-    }
 
     private function serializeUser(User $user): array
     {
