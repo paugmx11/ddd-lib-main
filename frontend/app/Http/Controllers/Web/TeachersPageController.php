@@ -68,6 +68,7 @@ final class TeachersPageController
     {
         try {
             $resp = $backendApi->request('GET', "/api/teachers/{$id}");
+            $sr = $backendApi->request('GET', '/api/subjects');
         } catch (\Throwable) {
             return redirect('/teachers')->with('error', 'Cannot reach backend');
         }
@@ -83,8 +84,18 @@ final class TeachersPageController
             return redirect('/teachers')->with('error', 'Backend error');
         }
 
+        $subjectNameById = [];
+        if (isset($sr) && $sr->successful() && is_array($sr->json())) {
+            foreach ($sr->json() as $s) {
+                if (is_array($s) && isset($s['id'], $s['name'])) {
+                    $subjectNameById[(string) $s['id']] = (string) $s['name'];
+                }
+            }
+        }
+
         return view('teachers.edit', [
             'teacher' => $teacher,
+            'subjectNameById' => $subjectNameById,
         ]);
     }
 
