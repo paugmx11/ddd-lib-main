@@ -11,7 +11,12 @@ trait JsonHttpResponder
      */
     protected function readJsonBody(): ?array
     {
-        $raw = (string) file_get_contents('php://input');
+        // Allow tests (or specialized environments) to inject a request body without relying on php://input.
+        // This keeps controllers testable while production continues to read from php://input.
+        $raw = (string) ($_SERVER['MOCK_JSON_BODY'] ?? '');
+        if ($raw === '') {
+            $raw = (string) file_get_contents('php://input');
+        }
         if ($raw === '') {
             $this->jsonResponse(['error' => 'Empty request body'], 400);
             return null;
@@ -37,4 +42,3 @@ trait JsonHttpResponder
         echo json_encode($payload, JSON_UNESCAPED_SLASHES);
     }
 }
-
