@@ -1,0 +1,80 @@
+services:
+  bdd:
+    build:
+      context: ./bdd
+    container_name: ddd-lib-bdd
+    restart: unless-stopped
+    volumes:
+      - db_data:/data
+    networks:
+      - internal
+
+  backend:
+    build:
+      context: ./backend
+    container_name: ddd-lib-backend
+    restart: unless-stopped
+    ports:
+      - "${BACKEND_PORT:-8000}:8000"
+    environment:
+      # Persist backend SQLite DB in shared volume
+      DATABASE_URL: sqlite:////data/backend.sqlite
+      # OAuth config (override in your deployment)
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
+      GOOGLE_REDIRECT_URI: ${GOOGLE_REDIRECT_URI:-http://localhost/auth/google/callback}
+      FRONTEND_BASE_URL: ${FRONTEND_BASE_URL:-http://localhost}
+      APP_URL: ${BACKEND_APP_URL:-http://backend:8000}
+    depends_on:
+      - bdd
+    volumes:
+      - db_data:/data
+    networks:
+      - internal
+
+  frontend:
+    build:
+      context: ./frontend
+    container_name: ddd-lib-frontend
+    restart: unless-stopped
+    ports:
+      - "${FRONTEND_PORT:-8001}:80"
+    environment:
+      APP_ENV: ${APP_ENV:-production}
+      APP_DEBUG: ${APP_DEBUG:-false}
+      APP_URL: ${FRONTEND_APP_URL:-http://localhost}
+      APP_KEY: ${APP_KEY:-}
+
+      BACKEND_BASE_URL: http://backend:8000
+
+      DB_CONNECTION: sqlite
+      DB_DATABASE: /data/frontend.sqlite
+
+      # OAuth values used to build Google auth URL in blade templates
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      GOOGLE_REDIRECT_URI: ${GOOGLE_REDIRECT_URI:-http://localhost/auth/google/callback}
+
+      SESSION_DRIVER: database
+      CACHE_STORE: database
+      QUEUE_CONNECTION: database
+    depends_on:
+      - backend
+      - bdd
+    volumes:
+      - db_data:/data
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.ddd-lib.rule=Host(`${TRAEFIK_HOST:-localhost}`)"
+      - "traefik.http.services.ddd-lib.loadbalancer.server.port=80"
+    networks:
+      - internal
+      - proxy
+
+volumes:
+  db_data:
+
+networks:
+  internal:
+    driver: bridge
+  proxy:
+    external: true

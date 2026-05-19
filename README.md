@@ -69,3 +69,22 @@ Configuració important:
 
 - Backend: `cd backend && ./vendor/bin/phpunit`
 - Frontend: `cd frontend && php artisan test`
+
+
+# Dockerització — ddd-lib → pgalvez.fpnuria.net
+
+## Estructura de fitxers
+
+```
+.
+├── docker/
+│   ├── backend/Dockerfile       # PHP 8.2 CLI + Doctrine + SQLite
+│   └── frontend/Dockerfile      # PHP 8.2 CLI + Laravel
+├── docker-compose.yml           # Versió local (sense DNS, per provar)
+├── docker-compose.traefik.yml   # Versió producció (pgalvez.fpnuria.net)
+├── .env.example
+├── backend/
+└── frontend/
+```
+
+---
